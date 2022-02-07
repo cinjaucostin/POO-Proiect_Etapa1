@@ -1,0 +1,108 @@
+########### PROIECT ETAPA 1 ###########
+- Voi incerca sa explic toata logica proiectului in mai multi pasi:
+    1. Cum am parsat din fisierele de intrare.
+    2. Cum am realizat simularea rundelor.
+    3. Cum am scris output-ul obtinut in fisiere de iesire.
+- In ceea ce priveste primul pas, cel de parsare din fisierele de intrare:
+    -> M-am folosit de biblioteca Jackson(am urmarit sectiunea speciala de pe ocw si o serie
+    de tutoriale pe youtube:https://www.youtube.com/watch?v=Hv_a3ZBSO_g).
+    -> Pentru a parsa cu Jackson trebuia respectata ierarhia obiectelor din fisierul de intrare .json,
+    mai exact:
+          -un obiect principal in care trebuie stocate toate datele din input(in cazul meu Input).
+          -in interiorul acestui obiect vom avea mai multe campuri:
+               *un int care reprezinta numarul de ani pentru care vom simula
+               *un double in care vom retine bugetul mosului
+               *un alt obiect de tip InitialData(asa cum apare in fisier) care contine:
+                    *o lista de obiecte de tip Child, children,(cum apare in fisierul .json), obiect
+                    care la randul lui va contine un id, lastName, firstName, age, city,
+                    niceScore si o lista giftsPreferences.
+                    *o lista de obiecte de tip Gift, santaGiftsList(respectam din nou numele din json),
+                    obiect care contine:productName, price si category.
+               *o lista de obiecte de tip AnnualChange, annualChanges, obiecte care contine: un double
+               ce reprezinta noul buget al mosului, o lista de obiecte de tip Gift ce reprezinta
+               noile cadouri, o lista de obiecte de tip ChildrenUpdate, obiect ce contine: id-ul copilului
+               caruia trebuia sa ii facem modificari, niceScore-ul ce trebuie adaugat la istoric si o lista
+               de noi preferinte a copilului.
+    -> Singurul lucru pe care trebuia sa il facem era sa ne uitam cu atentie la fisierul de input json si
+    sa incercam sa ii asociem o ierarhie de clase identica cu structura sa, in care de asemenea sa pastram
+    notatiile pentru obiecte gasite in fisier.
+- Al doilea pas, mai exact simularea rundelor:
+    -> Avand toate informatiile intr-un obiect de tip Input obtinut in urma parsarii din fisierul json,
+    am decis sa creez o clasa pe baza design pattern-ului Singleton, clasa ce defineste un Database in
+    cadrul caruia vom introduce toate datele din obiectul Input. Motivatia din spatele acestei alegeri
+    consta in faptul ca baza de date cu bugetul mosului, numarul de ani pe care se vor face simulari,
+    lista de copii si lista de cadouri, este aceeasi intotdeauna, doar datele din ea se modifica de la
+    un test la altul(de aceea dupa ce terminam de simulat pentru un test o vom reseta, stergand toate
+    informatiile din ea).
+    -> Un alt design pattern pe are l-am folosit in rezolvare este Visitor, in care obiectul de tip Visitor
+    este reprezentat de Santa(viziteaza fiecare copil) si obiectul Visitable este Child
+    (poate fi vizitat de Santa). Motivatia consta in faptul ca mi s-a parut destul de interesanta ideea
+    sa il asociem pe Mos Craciun cu un Visitor si ca acest design pattern se pliaza destul de bine pe ce
+    avem noi nevoie.
+    -> Pentru a simula executia rundelor am creat o clasa Simulator ce extinde o interfata Simulation
+    si care implementeaza doua metode: una in care se simuleaza pur si simplu o runda(se executa
+    toti pasii specificati in cerinta) si una in care se fac niste actualizari in ceea ce priveste
+    informatiile din Database si din Santa si ulterior se aplica prima metoda de simulare a rundei.
+- Al treilea pas, de scriere in fisierul de output:
+    -> Pentru a putea scrie in fisier .json m-am folosit de un principiu similar cu cel de la primul pas:
+        *m-am uitat intr-un fisier .ref sa imi fac o idee de cum ar trebui sa arate fisierul de output.
+        *am incercat sa fac o ierarhie de clase identica cu cea prezenta in fisierul de referinta .json.
+        *clasa principala(Output) va fi reprezenta un camp al Simulator-ului in care vom adauga
+        informatii dupa fiecare runda simulata(o alta lista de copii).
+
+- Acum ca am prezentat ideile in mare, voi incerca sa fac o descriere a fiecarei clase pentru a intelege
+mai bine care este rolul acesteia:
+    ->Pachetul 'changes' contine:
+        *AnnualChange = clasa pe care am definit-o pentru a putea parsa din fisierul .json, in cadrul
+        acesteia sunt retinute toate modificarile produse de la un an la celalalt: bugetul mosului, lista
+        de noi cadouri, lista de noi copii, o lista cu schimbari in ceea ce priveste informatiile
+        despre copiii deja existenti in Database.
+    ->Pachetul 'child' contine:
+        *Child = clasa ce modeleaza un copil, retinand urmatoarele informatii despre acesta:id-ul,
+        lastName, firstName, age, city, etc.
+        *ChildrenUpdate = clasa ce contine informatiile ce trebuie modificate pentru copilul cu id-ul dat:
+        un alt niceScore si alta lista de preferinte.
+    ->Pachetul 'database' contine:
+        *Database = clasa de tip Singleton in care se vor retine toate informatiile extrase din fisiere.
+    ->Pachetul 'gift' contine:
+        *Gift = clasa ce modeleaza un cadou, fiind compusa din: numele acestuia, pretul si categoria din
+        care face parte.
+    ->Pachetul 'input' contine principalele clase cu ajutorul carora am reusit sa parsez din fisier:
+        *InitialData = contine o lista children de obiecte de tip Child(lista cu copii din runda 0) si
+        o lista de obiecte de tip Gift(lista de cadouri din runda 0), practic ea contine informatiile
+        cu privire la primul an pentru care trebuie sa simulam vizita mosului.
+        *Input = clasa principala(prima din ierarhie) in care am parsat tot fisierul .json, ea contine:
+        numarul de ani, bugetul mosului, un obiect InitialData si o lista de obiecte de tip annualChanges
+               = clasa din care am extras informatiile pe care le-am bagat ulterior in Database.
+        *InputLoader = clasa care contine metode ce ne ajuta la parsarea din fisierul .json.
+    ->Pachetul 'main' contine:
+        *Main = clasa ce contine entry-point-ul implementarii.
+    ->Pachetul 'output' contine:
+        *ChildOutput = clasa ce contine toate informatiile despre un copil, informatii ce trebuie puse in
+        fisierul de output.
+        *AnnualOutput = clasa ce contine un camp reprezentand o lista de ChildOutput, creata in principal
+        pentru a respecta ierarhia obiectelor din output.
+        *Output = clasa principala cu ajutorul careia vom scrie in fisierul de output, ea contine o lista
+        de obiecte de tip AnnualOutput, lista ce este completata pe parcursul simularii rundelor(fiecarei
+        simulari ii este asociata un AnnualOutput pe care il vom introduce in lista).
+        *WriteOutput = clasa ce contine metode ce ne vor ajuta sa scriem in fisierul .out.
+    ->Pachetul 'santa' contine:
+        *Visitor = interfata specifica design pattern-ului in cadrul careia este declarata metoda visit()
+        ce trebuie completata de toate clasele ce implementeaza respectiva interfata.
+        *Santa = clasa ce implementeaza interfata Visitor, aceasta modeleaza caracteristicile lui Mos Craciun.
+               = are implementate si diferite metode(de calcul a mediei fiecarui copil, stabilirea categoriei
+               de varsta pentru fiecare, etc.
+               = am implementat aceste metode aici si nu in alta clasa deoarece m-am gandit ca tine de Mos Craciun
+               sa calculeze mediile copiilor(regulile de calcul sunt stabilite de el), sa stabileasca categoriile
+               de varsta(intervalele pentru acestea sunt stabilite dupa cum crede el).
+    ->Pachetul 'simulation' contine:
+        *Simulation = interfata in cadrul careia sunt declarate doua metode:justExec(metoda de simulare
+         a unei runde) si updateAndExec(metoda prin care se fac update-uri in Database si se apeleaza
+         metoda justExec pentru a simula runda dupa update-urile facute).
+        *Simulator = clasa ce implementeaza interfata simulation si se ocupa cu simularea specifica fiecarui
+        an in parte.
+    ->Pachetul 'utils' contine:
+        *Utils = clasa in cadrul careia am implementat diferite metode pe care le-am folosit pe parcursul implementarii.
+
+    Nota: Stiu ca este putin cam lung README-ul dar am vrut sa se inteleaga utilitatea fiecarei clase inca de aici,
+    fara a mai fi nevoie sa citim cometariile din cod daca nu dorim acest lucru.
